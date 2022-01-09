@@ -1,8 +1,16 @@
 import { Module } from '@nestjs/common';
-import { CarModule } from './car/car.module';
+import { CarModule } from './modules/car/car.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { TaskModule } from './modules/task/task.module';
 
 @Module({
-  imports: [CarModule],
+  imports: [
+    MongooseModule.forRoot(
+      'mongodb://localhost:27017/nestjs?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false',
+    ),
+    CarModule,
+    TaskModule,
+  ],
   controllers: [],
   providers: [],
 })
