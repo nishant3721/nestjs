@@ -20,7 +20,7 @@ const checkToken = (req, res, next) => {
   if (isPublic) {
     next();
   } else {
-    const token = req.header.token;
+    const token = req.headers.token;
     try {
       const user = new AuthService(null).validateUser(token);
       // set the user in request

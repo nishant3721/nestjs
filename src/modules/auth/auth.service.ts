@@ -44,4 +44,13 @@ export class AuthService {
     userInfo.token = this.getToken(userInfo);
     return userInfo;
   }
+
+  async getUserDetails(req: any): Promise<AuthDto> {
+    const parseId = req.user.id;
+    let userInfo;
+    userInfo = await this.userRepository.getUser(parseId);
+    delete userInfo.password;
+    delete userInfo.salt;
+    return userInfo;
+  }
 }

@@ -2,7 +2,11 @@ import { Users } from 'src/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { AuthDto } from 'src/modules/auth/dto/auth.dto';
 import { EntityRepository, Repository } from 'typeorm';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 @EntityRepository(Users)
 export class UserRepository extends Repository<Users> {
   async signup(signupDto: AuthDto): Promise<AuthDto> {
@@ -31,6 +35,14 @@ export class UserRepository extends Repository<Users> {
     } else {
       throw new UnauthorizedException('Invalid Credentials');
     }
+  }
+
+  async getUser(id: number): Promise<AuthDto> {
+    const userInfo = await this.findOne(id);
+    if (!userInfo) {
+      throw new NotFoundException('User not found.');
+    }
+    return userInfo;
   }
 
   async hashPassword(password: string, salt: string): Promise<string> {
