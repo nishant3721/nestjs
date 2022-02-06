@@ -1,9 +1,13 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-import { HttpException, Injectable } from '@nestjs/common';
+/* eslint-disable prefer-const */
+/* eslint-disable @typescript-eslint/no-var-requires */
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Users } from 'src/entities/user.entity';
 import { UserRepository } from 'src/repository/user.repository';
-import { AuthResponseDto } from './dto/auth-response.dto';
-import { SignUpDto } from './dto/signup.dto';
+import { AuthDto } from './dto/auth.dto';
+
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
 @Injectable()
 export class AuthService {
@@ -11,14 +15,33 @@ export class AuthService {
     @InjectRepository(UserRepository) private userRepository: UserRepository,
   ) {}
 
-  async signup(signupDto: SignUpDto): Promise<void> {
-    const user = await this.userRepository.findOne(signupDto.email);
-    if (user) {
-      throw new HttpException(
-        'Sorry a user with this email, already exists',
-        401,
-      );
-    }
-    return await this.userRepository.signup(signupDto);
+  getToken(userId: AuthDto): string {
+    const token = jwt.sign({ data: userId }, process.env.JWT_SECRET, {
+      expiresIn: '24h',
+    });
+    return token;
+  }
+
+  validateUser(token: string): Users {
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+    return userInfo.data;
+  }
+
+  async signup(signupDto: AuthDto): Promise<AuthDto> {
+    let userInfo;
+    userInfo = await this.userRepository.signup(signupDto);
+    delete userInfo.password;
+    delete userInfo.salt;
+    userInfo.token = this.getToken(userInfo);
+    return userInfo;
+  }
+
+  async login(loginDto: AuthDto): Promise<AuthDto> {
+    let userInfo;
+    userInfo = await this.userRepository.login(loginDto);
+    delete userInfo.password;
+    delete userInfo.salt;
+    userInfo.token = this.getToken(userInfo);
+    return userInfo;
   }
 }

@@ -1,16 +1,39 @@
-import { User } from 'src/entities/user.entity';
-import { AuthResponseDto } from 'src/modules/auth/dto/auth-response.dto';
-import { SignUpDto } from 'src/modules/auth/dto/signup.dto';
+import { Users } from 'src/entities/user.entity';
+import * as bcrypt from 'bcrypt';
+import { AuthDto } from 'src/modules/auth/dto/auth.dto';
 import { EntityRepository, Repository } from 'typeorm';
-
-@EntityRepository(User)
-export class UserRepository extends Repository<User> {
-  async signup(signupDto: SignUpDto): Promise<void> {
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
+@EntityRepository(Users)
+export class UserRepository extends Repository<Users> {
+  async signup(signupDto: AuthDto): Promise<AuthDto> {
     const { name, email, password } = signupDto;
-    const user = new User();
+    const salt = await bcrypt.genSalt();
+    const user = new Users();
     user.name = name;
     user.email = email;
-    user.password = password;
-    await user.save();
+    user.salt = salt;
+    user.password = await this.hashPassword(password, salt);
+    try {
+      await user.save();
+      return user;
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('User with this email already exists');
+      }
+    }
+  }
+
+  async login(authDto: AuthDto): Promise<AuthDto> {
+    const { email, password } = authDto;
+    const userInfo = await this.findOne({ email });
+    if (userInfo && (await userInfo.validatePasswrord(password))) {
+      return userInfo;
+    } else {
+      throw new UnauthorizedException('Invalid Credentials');
+    }
+  }
+
+  async hashPassword(password: string, salt: string): Promise<string> {
+    return await bcrypt.hash(password, salt);
   }
 }
