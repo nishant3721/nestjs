@@ -32,6 +32,7 @@ export class AuthService {
     userInfo = await this.userRepository.signup(signupDto);
     delete userInfo.password;
     delete userInfo.salt;
+    delete userInfo.tasks;
     userInfo.token = this.getToken(userInfo);
     return userInfo;
   }
@@ -41,6 +42,7 @@ export class AuthService {
     userInfo = await this.userRepository.login(loginDto);
     delete userInfo.password;
     delete userInfo.salt;
+    delete userInfo.tasks;
     userInfo.token = this.getToken(userInfo);
     return userInfo;
   }
@@ -51,6 +53,7 @@ export class AuthService {
     userInfo = await this.userRepository.getUser(parseId);
     delete userInfo.password;
     delete userInfo.salt;
+    delete userInfo.tasks;
     return userInfo;
   }
 }

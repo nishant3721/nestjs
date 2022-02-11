@@ -1,12 +1,13 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { CreateTaskDto } from '../modules/task/dto/create-task.dto';
 import { GetFilterTaskDto } from '../modules/task/dto/get-filter-task.dto';
-import { Task } from '../entities/task.entity';
+import { Tasks } from '../entities/task.entity';
 import { TaskStatus } from '../modules/task/enum/task-status.enum';
+import { Users } from 'src/entities/user.entity';
 
-@EntityRepository(Task)
-export class TaskRepository extends Repository<Task> {
-  async getTasks(filteredDto: GetFilterTaskDto): Promise<Task[]> {
+@EntityRepository(Tasks)
+export class TaskRepository extends Repository<Tasks> {
+  async getTasks(filteredDto: GetFilterTaskDto): Promise<Tasks[]> {
     const { search, status } = filteredDto;
     const query = this.createQueryBuilder('task');
     if (search) {
@@ -23,13 +24,15 @@ export class TaskRepository extends Repository<Task> {
     return tasks;
   }
 
-  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+  async createTask(createTaskDto: CreateTaskDto, user: Users): Promise<Tasks> {
     const { title, description } = createTaskDto;
-    const task = new Task();
+    const task = new Tasks();
     task.title = title;
     task.description = description;
     task.status = TaskStatus.OPEN;
+    task.user = user;
     await task.save();
+    delete task.user;
     return task;
   }
 }
