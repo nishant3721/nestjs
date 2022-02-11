@@ -22,13 +22,19 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Get()
-  getTasks(@Query() filteredDto: GetFilterTaskDto): Promise<Tasks[]> {
-    return this.taskService.getTasks(filteredDto);
+  getTasks(
+    @Query() filteredDto: GetFilterTaskDto,
+    @Req() req: any,
+  ): Promise<Tasks[]> {
+    return this.taskService.getTasks(filteredDto, req);
   }
 
   @Get(':id')
-  getTaskById(@Param('id', ParseIntPipe) id: number): Promise<Tasks> {
-    return this.taskService.getTaskById(id);
+  getTaskById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ): Promise<Tasks> {
+    return this.taskService.getTaskById(id, req);
   }
 
   @Post()
@@ -40,16 +46,20 @@ export class TaskController {
   }
 
   @Delete(':id')
-  deleteCarById(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.taskService.deleteTaskById(id);
+  deleteCarById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ): Promise<void> {
+    return this.taskService.deleteTaskById(id, req);
   }
 
   @Put(':id')
-  updateCarById(
+  updateTaskById(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTaskDto: UpdateTaskDto,
+    @Req() req: any,
   ): Promise<Tasks> {
     const { status } = updateTaskDto;
-    return this.taskService.updateTaskById(id, status);
+    return this.taskService.updateTaskById(id, status, req);
   }
 }
